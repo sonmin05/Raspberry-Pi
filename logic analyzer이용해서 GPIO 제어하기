@@ -1,0 +1,19 @@
+#include <stdio.h>
+#include <wiringPi.h>
+
+#define OUTPUT_PIN 2
+
+void main(void)
+{
+    printf("LED ON");
+    wiringPiSetupGpio();
+    pinMode(OUTPUT_PIN, OUTPUT);
+
+    for (;;)
+    {
+        digitalWrite(OUTPUT_PIN, LOW);
+        delay(400);
+        digitalWrite(OUTPUT_PIN, HIGH);
+        delay(400);
+    }
+}
