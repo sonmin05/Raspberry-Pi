@@ -1,0 +1,35 @@
+#include "ros/ros.h"
+#include "std_msgs/Int32.h"
+
+int main(int argc, char **argv)
+{
+  ros::init(argc, argv, "multiplication_publisher");
+  ros::NodeHandle n;
+
+  ros::Publisher multiplication_pub = n.advertise<std_msgs::Int32>("multiplication_result", 1000);
+  ros::Rate loop_rate(1); // Publish every 1 second
+
+  int multiplier = 1; // Set the multiplier for the table
+  int number = 1;     // Start from 1
+
+  while (ros::ok())
+  {
+    std_msgs::Int32 msg;
+    msg.data = multiplier * number;
+
+    ROS_INFO("Publishing: %d x %d = %d", multiplier, number, msg.data);
+    multiplication_pub.publish(msg);
+
+    number++;
+    if (number > 9)
+    {
+      number = 1; // Reset to 1 after 9
+      multiplier++;
+    }
+
+    ros::spinOnce();
+    loop_rate.sleep();
+  }
+
+  return 0;
+}
