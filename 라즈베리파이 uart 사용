@@ -1,0 +1,76 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <termios.h>
+
+int main() {
+    
+    int serial_port = open("/dev/ttyS0", O_RDWR | O_NOCTTY);
+    
+    if (serial_port == -1) {
+        perror("Failed to open serial port");
+        return 1;
+    }
+
+    
+    struct termios tty;
+    memset(&tty, 0, sizeof tty);
+
+    if (tcgetattr(serial_port, &tty) != 0) {
+        perror("Error getting terminal attributes");
+        close(serial_port);
+        return 1;
+    }
+
+   
+    cfsetospeed(&tty, B9600);
+    cfsetispeed(&tty, B9600);
+
+   
+    tty.c_cflag |= (CLOCAL | CREAD);
+    tty.c_cflag &= ~PARENB; 
+    tty.c_cflag &= ~CSTOPB;  
+    tty.c_cflag &= ~CSIZE;
+    tty.c_cflag |= CS8;     
+
+   
+    tty.c_lflag = 0;
+    tty.c_oflag = 0;
+    tty.c_iflag = 0;
+
+   
+    tty.c_cc[VMIN] = 0;
+    tty.c_cc[VTIME] = 10; 
+
+    if (tcsetattr(serial_port, TCSANOW, &tty) != 0) {
+        perror("Error setting terminal attributes");
+        close(serial_port);
+        return 1;
+    }
+
+  
+    const char *msg = "Hello";
+    if (write(serial_port, msg, strlen(msg)) == -1) {
+        perror("Error writing to serial port");
+        close(serial_port);
+        return 1;
+    }
+    printf("Sent: %s\n", msg);
+
+    
+    char read_buf[15];
+    memset(read_buf, 0, sizeof(read_buf));
+
+    int num_bytes = read(serial_port, read_buf, sizeof(read_buf) - 1);
+    if (num_bytes < 0) {
+        perror("Error reading from serial port");
+    } else {
+        printf("Received: %s\n", read_buf);
+    }
+
+    
+    close(serial_port);
+    return 0;
+}
